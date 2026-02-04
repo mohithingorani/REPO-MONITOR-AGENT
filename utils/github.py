@@ -4,14 +4,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from langchain_ollama import ChatOllama
-from pydantic import BaseModel, Field
 from langchain.messages import SystemMessage, HumanMessage
-from typing_extensions import Annotated
 GITHUB_API = "https://api.github.com"
 HEADERS = {
     "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
     "Accept": "application/vnd.github+json"
 }
+from models import ImportantFilesOutput, IsUssueOutput
 
 # repo example https://github.com/mohithingorani/RAG-CHAIN-FOR-AI-ARTICLE
 
@@ -30,19 +29,11 @@ def get_repo_files(owner: str, repo: str, path: str = "") -> List[str]:
             files.extend(get_repo_files(owner, repo, item["path"]))
     return files
 
-class ImportantFilesOutput(BaseModel):
-    important_files: List[str] = Field(description="A list of important files)")
 
 
-# With description
-class IsUssueOutput(BaseModel):
-    is_issue: bool = Field(description="Indicates whether the content is an issue or not.")
-    issue_description:str | None= Field(description="A brief description of the issue if it is an issue, otherwise an empty string.")
 
-llm = ChatOllama(model="gpt-oss:20b",temperature=0)
 
 def get_important_files(files: List[str]) -> List[str]:
-
     llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
     system_message = SystemMessage(
         content=(
@@ -68,6 +59,7 @@ def get_file_content(owner: str, repo: str, file_path: str) -> str:
         content = base64.b64decode(file_info['content']).decode('utf-8')
         return content
     return ""
+
 
 
 
