@@ -1,6 +1,2 @@
-def main():
-    print("Hello from github-agent!")
-
-
-if __name__ == "__main__":
-    main()
+from dotenv import load_dotenv
+load_dotenv()
