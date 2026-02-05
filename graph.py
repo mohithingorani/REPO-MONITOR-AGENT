@@ -66,7 +66,7 @@ def tool_node(state: MessageState) -> MessageState:
         observation = get_file_content.invoke(tool_call["args"])
         result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
         obs += observation + "\n"
-    return MessageState(messages=state.messages + result, curr_index=state.curr_index, files=state.files, owner=state.owner, repo=state.repo,curr_observation=obs)
+    return MessageState(messages=state.messages + result, curr_index=state.curr_index, files=state.files, owner=state.owner, repo=state.repo,curr_observation=obs,observations_added=state.observations_added+1)
 
 def get_issue(state:MessageState)->MessageState:
     obs = state.curr_observation
@@ -74,7 +74,8 @@ def get_issue(state:MessageState)->MessageState:
     if response.is_issue:
         return MessageState(**{
             **state.model_dump(),
-            "observations":[response.issue_description]
+            "observations":[response.issue_description],
+            "issue_called": state.issue_called + 1
         })
     return state
 
@@ -104,4 +105,4 @@ show_image(agent)
 
 # Invoking the Agent
 response = agent.invoke({"messages":[HumanMessage(content="tell me about https://github.com/mohithingorani/BAJAJ-BROKING-SDK")]})
-print(response)
+print(response.observations)

@@ -27,3 +27,5 @@ class MessageState(BaseModel):
     curr_index:int = 0
     curr_observation:str = ""
     observations: Annotated[list[str], add] = []
+    issue_called: int| None = 0
+    observations_added:int = 0
