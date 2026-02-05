@@ -5,6 +5,7 @@ from langchain.messages import AnyMessage
 from typing import Annotated, List
 
 class ImportantFilesOutput(BaseModel):
+    """Get important files"""
     important_files: List[str] = Field(description="A list of important files)")
 
 
@@ -19,7 +20,7 @@ class FileState(BaseModel):
 class MessageState(BaseModel):
     messages : Annotated[list[AnyMessage],add]
     llm_calls : int = 0
-    files: list[FileState] | None = None
+    files: list[str] = []
     owner:str | None = None
     repo : str | None = None
     path:str = ""

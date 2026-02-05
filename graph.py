@@ -7,28 +7,16 @@ from langchain.messages import AnyMessage
 from models import ImportantFilesOutput, MessageState
 from utils import show_image
 from utils.github import get_repo_files, get_file_content, is_issue_in_file
+from test2 import get_important_files
 from langchain.messages import SystemMessage, HumanMessage,ToolMessage
 from langgraph.graph import StateGraph,START,END
 from typing import List
-llm = ChatOllama(model="gpt-oss:20b",temperature=0)
 from test import parse_repo
 
 from dotenv import load_dotenv
 load_dotenv()
-def get_important_files(files: List[str]) -> List[str]:
-    llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
-    system_message = SystemMessage(
-        content=(
-            "You analyze a GitHub repository and identify files that are important for understanding the project. "
-            "Include core source files (e.g. .py, .js, .ts, .java) and key documentation (README, docs). "
-            "Exclude config files, environment files, editor settings, dependencies, build artifacts, and "
-            "non-essential utilities or helper components."
-        )
-    )
-    human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
-    response = llm_with_structured_output.invoke([system_message, human_message])
-    return response.important_files
 
+llm = ChatOllama(model="gpt-oss:20b",temperature=0)
 
 
 tools = [get_repo_files, get_important_files, get_file_content, is_issue_in_file]
@@ -82,6 +70,8 @@ agent_builder = StateGraph(state_schema=MessageState)
 # agent_builder.add_node("tool_node", tool_node)
 agent_builder.add_node("parse_repo",parse_repo)
 agent_builder.add_node("get-all-files",get_repo_files)
+agent_builder.add_node("important-files",get_important_files)
+
 # agent_builder.add_edge(START, "llm_call")
 # agent_builder.add_conditional_edges(
 #     "llm_call",
@@ -92,6 +82,7 @@ agent_builder.add_node("get-all-files",get_repo_files)
 # agent_builder.add_edge("tool_node","llm_call")
 agent_builder.add_edge(START,"parse_repo")
 agent_builder.add_edge("parse_repo","get-all-files")
+agent_builder.add_edge("get-all-files","important-files")
 # agent_builder.add_edge("parse-repo","get-all-files")
 # agent_builder.add_edge("get-all=files",END)
 agent = agent_builder.compile()

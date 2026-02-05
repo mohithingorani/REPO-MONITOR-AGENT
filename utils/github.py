@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import List
 import requests
 import os
 from dotenv import load_dotenv
@@ -17,15 +17,15 @@ from models import MessageState
 # repo example https://github.com/mohithingorani/RAG-CHAIN-FOR-AI-ARTICLE
 
 
-def parse_repo(state: MessageState):
-    """Extract owner/repo from last message"""
-    last_msg = state["messages"][-1].content
-    if "github.com/" in last_msg:
-        # Parse https://github.com/owner/repo
-        repo_url = last_msg.split("github.com/")[-1].split()[0].rstrip("/")
-        owner, repo = repo_url.split("/")[:2]
-        return {"owner": owner, "repo": repo, "messages": [ToolMessage(content=f"Parsed repo: {owner}/{repo}", tool_call_id="parse")]}
-    return {"messages": [ToolMessage(content="No valid GitHub URL found", tool_call_id="parse")]}
+# def parse_repo(state: MessageState):
+#     """Extract owner/repo from last message"""
+#     last_msg = state["messages"][-1].content
+#     if "github.com/" in last_msg:
+#         # Parse https://github.com/owner/repo
+#         repo_url = last_msg.split("github.com/")[-1].split()[0].rstrip("/")
+#         owner, repo = repo_url.split("/")[:2]
+#         return {"owner": owner, "repo": repo, "messages": [ToolMessage(content=f"Parsed repo: {owner}/{repo}", tool_call_id="parse")]}
+#     return {"messages": [ToolMessage(content="No valid GitHub URL found", tool_call_id="parse")]}
 
 
 
@@ -51,12 +51,13 @@ def get_repo_files(state:MessageState) -> List[str]:
         "llm_calls":0,
         "files":files,
         "messages":[],
-        "path":""
+        "path":"",
+        
     }
 
 
 
-
+llm = ChatOllama(model="gpt-oss:20b",temperature=0)
 
 
 
@@ -99,3 +100,35 @@ def is_issue_in_file(content:str) -> IsUssueOutput:
         HumanMessage(content=f"Here is the content of the file:\n{content}\nBased on this content, is there an issue described in the file? If so, provide a brief description of the issue. If not, indicate that it is not an issue.")
     ])
     return response
+
+
+def get_important_files(state: MessageState):
+    files = state.files
+    llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
+    system_message = SystemMessage(
+        content=(
+            "You analyze a GitHub repository and identify files that are important for understanding the project. "
+            "Include core source files (e.g. .py, .js, .ts, .java) and key documentation (README, docs). "
+            "Exclude config files, environment files, editor settings, dependencies, build artifacts, and "
+            "non-essential utilities or helper components."
+        )
+    )
+    human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
+    response = llm_with_structured_output.invoke([system_message, human_message])
+    
+    return { 
+        "owner": state.owner,
+        "repo": state.repo,
+        "llm_calls":0,
+        "files":response.important_files,
+        "messages":[],
+        "path":""
+    }
+
+
+state = {
+ "files":  [".gitignore",".python-version","README.md","main.py","pyproject.toml","requirements.txt","uv.lock"]
+
+}
+# important_files = get_important_files(state=state)
+# print(important_files)

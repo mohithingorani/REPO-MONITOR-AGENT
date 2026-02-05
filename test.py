@@ -15,7 +15,7 @@ def parse_repo(state:dict):
         "owner": parts[0] if len(parts) > 0 else None,
         "repo": parts[1] if len(parts) > 1 else None,
         "llm_calls":0,
-        "files":None,
+        "files":[],
         "messages":[],
         "path":""
     }
