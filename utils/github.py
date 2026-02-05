@@ -40,14 +40,17 @@ def get_repo_files(state: MessageState) -> MessageState:
                 "path": item["path"],
                 "files": files,
             }
-            files.extend(get_repo_files(new_state)["files"])
+            child_state = get_repo_files(MessageState(**new_state))
+            files.extend(child_state.files)
 
-    return {
+    response = {
         **state,
         "files": files,
         "path": "", 
         "messages": [ToolMessage(content=f"Fetched {len(files)} files from repo", tool_call_id="get_repo_files")]
     }
+    final_state = MessageState(**response)
+    return final_state
 
 
 
