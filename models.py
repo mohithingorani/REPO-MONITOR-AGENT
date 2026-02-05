@@ -20,3 +20,6 @@ class MessageState(BaseModel):
     messages : Annotated[list[AnyMessage],add]
     llm_calls : int = 0
     files: list[FileState] | None = None
+    owner:str | None = None
+    repo : str | None = None
+    path:str = ""

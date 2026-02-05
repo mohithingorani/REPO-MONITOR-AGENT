@@ -11,7 +11,10 @@ from langchain.messages import SystemMessage, HumanMessage,ToolMessage
 from langgraph.graph import StateGraph,START,END
 from typing import List
 llm = ChatOllama(model="gpt-oss:20b",temperature=0)
+from test import parse_repo
 
+from dotenv import load_dotenv
+load_dotenv()
 def get_important_files(files: List[str]) -> List[str]:
     llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
     system_message = SystemMessage(
@@ -55,6 +58,7 @@ def llm_call(state:dict):
         ],
         "llm_calls": state["llm_calls"] + 1
     }
+
 def should_continue(state:MessageState) -> Literal["tool_node", END]:
     """Decide if we should continue the loop or stop based upon whether the LLM made a tool call"""
     if state["messages"][-1].tool_calls:
@@ -70,16 +74,27 @@ def show_image(agent):
 
 agent_builder = StateGraph(state_schema=MessageState)
 
-agent_builder.add_node("llm_call", llm_call)
-agent_builder.add_node("tool_node", tool_node)
-agent_builder.add_edge(START, "llm_call")
-agent_builder.add_conditional_edges(
-    "llm_call",
-    should_continue,
-    ["tool_node",END]
-)
 
-agent_builder.add_edge("tool_node","llm_call")
 
+
+
+# agent_builder.add_node("llm_call", llm_call)
+# agent_builder.add_node("tool_node", tool_node)
+agent_builder.add_node("parse_repo",parse_repo)
+agent_builder.add_node("get-all-files",get_repo_files)
+# agent_builder.add_edge(START, "llm_call")
+# agent_builder.add_conditional_edges(
+#     "llm_call",
+#     should_continue,
+#     ["tool_node",END]
+# )
+
+# agent_builder.add_edge("tool_node","llm_call")
+agent_builder.add_edge(START,"parse_repo")
+agent_builder.add_edge("parse_repo","get-all-files")
+# agent_builder.add_edge("parse-repo","get-all-files")
+# agent_builder.add_edge("get-all=files",END)
 agent = agent_builder.compile()
-show_image(agent)
+
+agent.invoke({"messages":[HumanMessage(content="tell me about https://github.com/mohithingorani/RAG-CHAIN-FOR-AI-ARTICLE")]})
+# show_image(agent)

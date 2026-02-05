@@ -10,12 +10,30 @@ HEADERS = {
     "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
     "Accept": "application/vnd.github+json"
 }
+from langchain.messages import ToolMessage
 from models import ImportantFilesOutput, IsUssueOutput
+from models import MessageState
 
 # repo example https://github.com/mohithingorani/RAG-CHAIN-FOR-AI-ARTICLE
 
 
-def get_repo_files(owner: str, repo: str, path: str = "") -> List[str]:
+def parse_repo(state: MessageState):
+    """Extract owner/repo from last message"""
+    last_msg = state["messages"][-1].content
+    if "github.com/" in last_msg:
+        # Parse https://github.com/owner/repo
+        repo_url = last_msg.split("github.com/")[-1].split()[0].rstrip("/")
+        owner, repo = repo_url.split("/")[:2]
+        return {"owner": owner, "repo": repo, "messages": [ToolMessage(content=f"Parsed repo: {owner}/{repo}", tool_call_id="parse")]}
+    return {"messages": [ToolMessage(content="No valid GitHub URL found", tool_call_id="parse")]}
+
+
+
+
+def get_repo_files(state:MessageState) -> List[str]:
+    owner = state.owner
+    repo = state.repo
+    path = state.path
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
@@ -27,7 +45,14 @@ def get_repo_files(owner: str, repo: str, path: str = "") -> List[str]:
             files.append(item["path"])
         elif item["type"] == "dir":
             files.extend(get_repo_files(owner, repo, item["path"]))
-    return files
+    return    { 
+        "owner": state.owner,
+        "repo": state.repo,
+        "llm_calls":0,
+        "files":files,
+        "messages":[],
+        "path":""
+    }
 
 
 
