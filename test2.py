@@ -5,7 +5,7 @@ llm = ChatOllama(model="gpt-oss:20b",temperature=0)
 
 def get_important_files(state: MessageState):
     files = state.files
-    llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
+    llm_with_structured_output:ImportantFilesOutput = llm.with_structured_output(ImportantFilesOutput)
     system_message = SystemMessage(
         content=(
             "You analyze a GitHub repository and identify files that are important for understanding the project. "
@@ -16,7 +16,15 @@ def get_important_files(state: MessageState):
     )
     human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
     response = llm_with_structured_output.invoke([system_message, human_message])
-    return {"files":response.important_files}
+    return { 
+        "owner": state.owner,
+        "repo": state.repo,
+        "llm_calls":state.llm_calls+1,
+        "files":response.important_files,
+        "messages":[],
+        "path":"",
+        
+    }
     
 
 
