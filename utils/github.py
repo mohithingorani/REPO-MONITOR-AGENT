@@ -115,7 +115,7 @@ def get_important_files(state: MessageState)->MessageState:
         owner=state.owner,
         repo=state.repo,
         llm_calls=state.llm_calls+1,
-        files=important[:5],
+        files=important[:2],
         messages=[ToolMessage(content=f"Identified {len(important)} important files from the repo", tool_call_id="get_important_files")],
         path="",
         curr_index=state.curr_index

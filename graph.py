@@ -61,23 +61,31 @@ def tool_node(state: MessageState) -> MessageState:
     """Performs the tool call"""
 
     obs = ""
-    result = []
+    tool_messages = []
     for tool_call in state.messages[-1].tool_calls:
         observation = get_file_content.invoke(tool_call["args"])
-        result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
+        tool_messages.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
         obs += observation + "\n"
-    return MessageState(messages=state.messages + result, curr_index=state.curr_index, files=state.files, owner=state.owner, repo=state.repo,curr_observation=obs,observations_added=state.observations_added+1)
+    return MessageState(messages=state.messages + tool_messages, curr_index=state.curr_index, files=state.files, owner=state.owner, repo=state.repo,curr_observation=obs,observations_added=state.observations_added+1)
 
-def get_issue(state:MessageState)->MessageState:
+def get_issue(state: MessageState) -> MessageState:
     obs = state.curr_observation
     response = is_issue_in_file(obs)
+
     if response.is_issue:
-        return MessageState(**{
-            **state.model_dump(),
-            "observations":[response.issue_description],
-            "issue_called": state.issue_called + 1
-        })
-    return state
+        return MessageState(
+            observations=[response.issue_description], 
+            issue_called=state.issue_called + 1,
+            messages=state.messages,
+            curr_index=state.curr_index,
+            files=state.files,
+            owner=state.owner,
+            repo=state.repo,observations_added=state.observations_added+1,
+            curr_observation="",
+        )
+
+    return MessageState()
+
 
 #  Building the Agent
 agent_builder = StateGraph(state_schema=MessageState)
@@ -105,4 +113,6 @@ show_image(agent)
 
 # Invoking the Agent
 response = agent.invoke({"messages":[HumanMessage(content="tell me about https://github.com/mohithingorani/BAJAJ-BROKING-SDK")]})
-print(response.observations)
+
+print("\n\n\n\n\n\n\n\n Final Response")
+print(response.get("observations"))
