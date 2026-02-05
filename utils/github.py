@@ -33,19 +33,6 @@ def get_repo_files(owner: str, repo: str, path: str = "") -> List[str]:
 
 
 
-def get_important_files(files: List[str]) -> List[str]:
-    llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
-    system_message = SystemMessage(
-        content=(
-            "You analyze a GitHub repository and identify files that are important for understanding the project. "
-            "Include core source files (e.g. .py, .js, .ts, .java) and key documentation (README, docs). "
-            "Exclude config files, environment files, editor settings, dependencies, build artifacts, and "
-            "non-essential utilities or helper components."
-        )
-    )
-    human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
-    response = llm_with_structured_output.invoke([system_message, human_message])
-    return response.important_files
 
 
 # Get Content for for important files
@@ -71,10 +58,10 @@ def get_file_content(owner: str, repo: str, file_path: str) -> str:
 # https://github.com/mohithingorani/Rç
 
 
-all_files = get_repo_files("mohithingorani", "RAG-CHAIN-FOR-AI-ARTICLE")
-print("All Files:", all_files)
-important_files = get_important_files(all_files)
-print("Important Files:", important_files)
+# all_files = get_repo_files("mohithingorani", "RAG-CHAIN-FOR-AI-ARTICLE")
+# print("All Files:", all_files)
+# important_files = get_important_files(all_files)
+# print("Important Files:", important_files)
 
 # content = get_file_content("mohithingorani", "RAG-CHAIN-FOR-AI-ARTICLE", file)
 
