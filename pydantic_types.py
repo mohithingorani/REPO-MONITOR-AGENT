@@ -10,7 +10,7 @@ class ImportantFilesOutput(BaseModel):
 
 
 # With description
-class IsUssueOutput(BaseModel):
+class isIssue(BaseModel):
     is_issue: bool = Field(description="Indicates whether the content is an issue or not.")
     issue_description:str | None= Field(description="A brief description of the issue if it is an issue, otherwise an empty string.")
 

@@ -4,13 +4,15 @@ from dotenv import load_dotenv
 load_dotenv()
 from langchain_ollama import ChatOllama
 from langchain.messages import SystemMessage, HumanMessage
+from pydantic_types import isIssue, ImportantFilesOutput, MessageState
+from langchain_core.tools import tool
 GITHUB_API = "https://api.github.com"
 HEADERS = {
     "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
     "Accept": "application/vnd.github+json"
 }
 from langchain.messages import ToolMessage
-from pydantic_types import ImportantFilesOutput, IsUssueOutput,MessageState
+from pydantic_types import ImportantFilesOutput, MessageState
 import re
 
 from model import llm
@@ -56,11 +58,21 @@ def get_repo_files(state: MessageState) -> MessageState:
 
 
 
-
-
-
 # Get Content for for important files
+@tool
 def get_file_content(owner: str, repo: str, file_path: str) -> str:
+    """
+    Docstring for get_file_content
+    
+    :param owner: Description
+    :type owner: str
+    :param repo: Description
+    :type repo: str
+    :param file_path: Description
+    :type file_path: str
+    :return: Description
+    :rtype: str
+    """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{file_path}"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
@@ -72,9 +84,9 @@ def get_file_content(owner: str, repo: str, file_path: str) -> str:
     return ""
 
 
-def is_issue_in_file(content:str) -> IsUssueOutput:
+def is_issue_in_file(content:str) -> isIssue:
     """Analyze the content of a file to determine if it describes an issue."""
-    llm_with_structured_output = llm.with_structured_output(IsUssueOutput)
+    llm_with_structured_output = llm.with_structured_output(isIssue)
     response = llm_with_structured_output.invoke([
         SystemMessage(content="You analyze the content of a file and determine if it is an issue or not. An issue typically contains a description of a problem, steps to reproduce, expected vs actual behavior, and may include labels or comments."),
         HumanMessage(content=f"Here is the content of the file:\n{content}\nBased on this content, is there an issue described in the file? If so, provide a brief description of the issue. If not, indicate that it is not an issue.")
