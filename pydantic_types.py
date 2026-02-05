@@ -25,3 +25,4 @@ class MessageState(BaseModel):
     repo : str | None = None
     path:str = ""
     curr_index:int = 0
+    observations: Annotated[list[str], add] = []
