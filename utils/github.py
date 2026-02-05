@@ -30,31 +30,42 @@ from models import MessageState
 
 
 
-def get_repo_files(state:MessageState) -> List[str]:
-    owner = state.owner
-    repo = state.repo
-    path = state.path
+from typing import Mapping
+
+def get_repo_files(state) -> dict:
+    # 🔑 Normalize MessageState → dict
+    if not isinstance(state, dict):
+        state = dict(state)
+
+    owner = state["owner"]
+    repo = state["repo"]
+    path = state.get("path", "")
+
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
+
     items = response.json()
-    files = []
+    files = state.get("files", [])
 
     for item in items:
         if item["type"] == "file":
             files.append(item["path"])
         elif item["type"] == "dir":
-            
-            files.extend(get_repo_files(owner, repo, item["path"]))
-    return    { 
-        "owner": state.owner,
-        "repo": state.repo,
-        "llm_calls":0,
-        "files":files,
-        "messages":[],
-        "path":"",
-        
-    }  
+            new_state = {
+                **state,
+                "path": item["path"],
+                "files": files,
+            }
+            files.extend(get_repo_files(new_state)["files"])
+
+    return {
+        **state,
+        "files": files,
+        "path": ""
+    }
+
+
 
 
 
