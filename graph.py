@@ -73,7 +73,7 @@ def get_issue(state:MessageState)->MessageState:
     response = is_issue_in_file(obs)
     if response.is_issue:
         return MessageState(**{
-            **state,
+            **state.model_dump(),
             "observations":[response.issue_description]
         })
     return state
