@@ -94,28 +94,7 @@ def is_issue_in_file(content:str) -> isIssue:
     return response
 
 
-def get_important_files(state: MessageState):
-    files = state.files
-    llm_with_structured_output = llm.with_structured_output(ImportantFilesOutput)
-    system_message = SystemMessage(
-        content=(
-            "You analyze a GitHub repository and identify files that are important for understanding the project. "
-            "Include core source files (e.g. .py, .js, .ts, .java) and key documentation (README, docs). "
-            "Exclude config files, environment files, editor settings, dependencies, build artifacts, and "
-            "non-essential utilities or helper components."
-        )
-    )
-    human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
-    response = llm_with_structured_output.invoke([system_message, human_message])
-    
-    return { 
-        "owner": state.owner,
-        "repo": state.repo,
-        "llm_calls":0,
-        "files":response.important_files,
-        "messages":[],
-        "path":""
-    }
+
 
 def get_important_files(state: MessageState)->MessageState:
     files = state.files
@@ -130,12 +109,14 @@ def get_important_files(state: MessageState)->MessageState:
     )
     human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
     response = llm_with_structured_output.invoke([system_message, human_message])
+    # testing with small files
+    important = response.important_files
     return MessageState(
         owner=state.owner,
         repo=state.repo,
         llm_calls=state.llm_calls+1,
-        files=response.important_files,
-        messages=[ToolMessage(content=f"Identified {len(response.important_files)} important files from the repo", tool_call_id="get_important_files")],
+        files=important[:5],
+        messages=[ToolMessage(content=f"Identified {len(important)} important files from the repo", tool_call_id="get_important_files")],
         path="",
         curr_index=state.curr_index
     )
