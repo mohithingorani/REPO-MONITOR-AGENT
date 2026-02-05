@@ -2,90 +2,36 @@
 import os
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel
-from typing_extensions import Annotated, Literal, TypedDict
+from typing_extensions import  Literal
 from langchain.messages import AnyMessage
-from models import ImportantFilesOutput, MessageState
-from utils import show_image
-from utils.github import get_repo_files, get_file_content, is_issue_in_file
-from test2 import get_important_files
+from pydantic_types import  MessageState
+from utils.github import get_repo_files, get_file_content, is_issue_in_file,get_important_files,parse_repo
 from langchain.messages import SystemMessage, HumanMessage,ToolMessage
 from langgraph.graph import StateGraph,START,END
-from typing import List
-from test import parse_repo
 
 from dotenv import load_dotenv
 load_dotenv()
 
-llm = ChatOllama(model="gpt-oss:20b",temperature=0)
-
-
-tools = [get_repo_files, get_important_files, get_file_content, is_issue_in_file]
-tools_by_name = {tool.__name__:tool for tool in tools}
-llm_with_tools = llm.bind_tools(tools)
-
-def tool_node(state: dict):
-    """Performs the tool call"""
-    result = []
-    for tool_call in state["messages"][-1].tool_calls:
-        tool = tools_by_name[tool_call["name"]]
-        observation = tool.invoke(tool_call["args"])
-        result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
-    return {"messages": result}
 
 
 
-def llm_call(state:dict):
-    """LLM decides next action using tool calls or final answer based on current state."""
 
-    return {
-        "messages":[
-            llm_with_tools.invoke([
-                SystemMessage(content="You are an AI agent that helps analyze GitHub repositories. Based on the current state, decide the next action to take using the available tools or provide a final answer."),
-            ])
-            + state["messages"] + state.get("files", [])
-        ],
-        "llm_calls": state["llm_calls"] + 1
-    }
 
-def should_continue(state:MessageState) -> Literal["tool_node", END]:
-    """Decide if we should continue the loop or stop based upon whether the LLM made a tool call"""
-    if state["messages"][-1].tool_calls:
-        return "tool_node"
-    else:
-        return END
-    
-def show_image(agent):
-    png_bytes = agent.get_graph(xray=True).draw_mermaid_png()
-    with open("agent_graph.png", "wb") as f:
-        f.write(png_bytes)
-    os.system("open agent_graph.png")
-
+#  Building the Agent
 agent_builder = StateGraph(state_schema=MessageState)
-
-
-
-
-
-# agent_builder.add_node("llm_call", llm_call)
-# agent_builder.add_node("tool_node", tool_node)
 agent_builder.add_node("parse_repo",parse_repo)
 agent_builder.add_node("get-all-files",get_repo_files)
 agent_builder.add_node("important-files",get_important_files)
 
-# agent_builder.add_edge(START, "llm_call")
-# agent_builder.add_conditional_edges(
-#     "llm_call",
-#     should_continue,
-#     ["tool_node",END]
-# )
 
-# agent_builder.add_edge("tool_node","llm_call")
 agent_builder.add_edge(START,"parse_repo")
 agent_builder.add_edge("parse_repo","get-all-files")
 agent_builder.add_edge("get-all-files","important-files")
-# agent_builder.add_edge("parse-repo","get-all-files")
-# agent_builder.add_edge("get-all=files",END)
+agent_builder.add_edge("important-files",END)
+
+# Compile the agent
 agent = agent_builder.compile()
 
+
+# Invoking the Agent
 agent.invoke({"messages":[HumanMessage(content="tell me about https://github.com/mohithingorani/BAJAJ-BROKING-SDK")]})
-# show_image(agent)

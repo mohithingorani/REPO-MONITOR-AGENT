@@ -1,4 +1,3 @@
-from typing import List
 import requests
 import os
 from dotenv import load_dotenv
@@ -11,29 +10,13 @@ HEADERS = {
     "Accept": "application/vnd.github+json"
 }
 from langchain.messages import ToolMessage
-from models import ImportantFilesOutput, IsUssueOutput
-from models import MessageState
+from pydantic_types import ImportantFilesOutput, IsUssueOutput,MessageState
+import re
 
-# repo example https://github.com/mohithingorani/RAG-CHAIN-FOR-AI-ARTICLE
+from model import llm
 
-
-# def parse_repo(state: MessageState):
-#     """Extract owner/repo from last message"""
-#     last_msg = state["messages"][-1].content
-#     if "github.com/" in last_msg:
-#         # Parse https://github.com/owner/repo
-#         repo_url = last_msg.split("github.com/")[-1].split()[0].rstrip("/")
-#         owner, repo = repo_url.split("/")[:2]
-#         return {"owner": owner, "repo": repo, "messages": [ToolMessage(content=f"Parsed repo: {owner}/{repo}", tool_call_id="parse")]}
-#     return {"messages": [ToolMessage(content="No valid GitHub URL found", tool_call_id="parse")]}
-
-
-
-
-from typing import Mapping
-
-def get_repo_files(state) -> dict:
-    # 🔑 Normalize MessageState → dict
+def get_repo_files(state: MessageState) -> MessageState:
+    # Normalize MessageState → dict
     if not isinstance(state, dict):
         state = dict(state)
 
@@ -62,14 +45,14 @@ def get_repo_files(state) -> dict:
     return {
         **state,
         "files": files,
-        "path": ""
+        "path": "", 
+        "messages": [ToolMessage(content=f"Fetched {len(files)} files from repo", tool_call_id="get_repo_files")]
     }
 
 
 
 
 
-llm = ChatOllama(model="gpt-oss:20b",temperature=0)
 
 
 
@@ -84,24 +67,6 @@ def get_file_content(owner: str, repo: str, file_path: str) -> str:
         content = base64.b64decode(file_info['content']).decode('utf-8')
         return content
     return ""
-
-
-
-
-
-
-# get_repo_files("mohithingorani", "RAG-CHAIN-FOR-AI-ARTICLE")
-# https://github.com/mohithingorani/Portfolio
-# content = get_file_content("mohithingorani", "Portfolio", "README.md")
-# https://github.com/mohithingorani/Rç
-
-
-# all_files = get_repo_files("mohithingorani", "RAG-CHAIN-FOR-AI-ARTICLE")
-# print("All Files:", all_files)
-# important_files = get_important_files(all_files)
-# print("Important Files:", important_files)
-
-# content = get_file_content("mohithingorani", "RAG-CHAIN-FOR-AI-ARTICLE", file)
 
 
 def is_issue_in_file(content:str) -> IsUssueOutput:
@@ -137,10 +102,49 @@ def get_important_files(state: MessageState):
         "path":""
     }
 
+def get_important_files(state: MessageState)->MessageState:
+    files = state.files
+    llm_with_structured_output:ImportantFilesOutput = llm.with_structured_output(ImportantFilesOutput)
+    system_message = SystemMessage(
+        content=(
+            "You analyze a GitHub repository and identify files that are important for understanding the project. "
+            "Include core source files (e.g. .py, .js, .ts, .java) and key documentation (README, docs). "
+            "Exclude config files, environment files, editor settings, dependencies, build artifacts, and "
+            "non-essential utilities or helper components."
+        )
+    )
+    human_message = HumanMessage(content=f"Here is a list of files in the repository: {files}. Please identify the important files from this list.")
+    response = llm_with_structured_output.invoke([system_message, human_message])
+    return MessageState(
+        owner=state.owner,
+        repo=state.repo,
+        llm_calls=state.llm_calls+1,
+        files=response.important_files,
+        messages=[ToolMessage(content=f"Identified {len(response.important_files)} important files from the repo", tool_call_id="get_important_files")],
+        path="",
+        curr_index=state.curr_index
+    )
+    
 
-state = {
- "files":  [".gitignore",".python-version","README.md","main.py","pyproject.toml","requirements.txt","uv.lock"]
 
-}
-# important_files = get_important_files(state=state)
-# print(important_files)
+def parse_repo(state:dict):
+    text="https://github.com/mohithingorani/RAG-CHAIN-FOR-AI-ARTICLE"
+    text = state.messages[0].content
+    match = re.search(r"https?://github\.com/[^\s]+", text)
+    if not match:
+        return None
+
+    url = match.group(0).rstrip("/")
+
+    clean = re.sub(r"^https?://github\.com/", "", url)
+    parts = clean.split("/")
+
+    return {
+        "owner": parts[0] if len(parts) > 0 else None,
+        "repo": parts[1] if len(parts) > 1 else None,
+        "llm_calls":0,
+        "files":[],
+        "messages":[],
+        "path":"",
+        "curr_index":0
+    }

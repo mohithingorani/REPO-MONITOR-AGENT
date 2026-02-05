@@ -24,3 +24,4 @@ class MessageState(BaseModel):
     owner:str =""
     repo : str | None = None
     path:str = ""
+    curr_index:int = 0
