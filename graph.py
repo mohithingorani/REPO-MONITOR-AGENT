@@ -54,7 +54,7 @@ def llm_call(state:MessageState) -> MessageState:
     )
 )
     ])
-    return MessageState(messages=[response], curr_index=state.curr_index+1, files=state.files, owner=state.owner, repo=state.repo,observations=state.observations)
+    return MessageState(messages=[response], curr_index=state.curr_index+1, files=state.files, owner=state.owner, repo=state.repo)
 
 
 def tool_node(state: MessageState) -> MessageState:
@@ -66,25 +66,30 @@ def tool_node(state: MessageState) -> MessageState:
         observation = get_file_content.invoke(tool_call["args"])
         tool_messages.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
         obs += observation + "\n"
-    return MessageState(messages=state.messages + tool_messages, curr_index=state.curr_index, files=state.files, owner=state.owner, repo=state.repo,curr_observation=obs,observations_added=state.observations_added+1)
+    return MessageState(messages= tool_messages, curr_index=state.curr_index, files=state.files, owner=state.owner,observations=[], repo=state.repo,curr_observation=obs,observations_added=state.observations_added+1)
 
 def get_issue(state: MessageState) -> MessageState:
     obs = state.curr_observation
+    # file = state.files[state.curr_index]
     response = is_issue_in_file(obs)
+    new_observations = ""
 
-    if response.is_issue:
-        return MessageState(
-            observations=[response.issue_description], 
-            issue_called=state.issue_called + 1,
-            messages=state.messages,
-            curr_index=state.curr_index,
-            files=state.files,
-            owner=state.owner,
-            repo=state.repo,observations_added=state.observations_added+1,
-            curr_observation="",
-        )
-
-    return MessageState()
+    if response.is_issue and response.issue_description:
+        new_observations = response.issue_description
+    
+    return MessageState(
+        messages=[],                 
+        files=state.files,
+        owner=state.owner,
+        repo=state.repo,
+        curr_index=state.curr_index,
+        curr_observation="",                     # reset
+        observations=[new_observations] if new_observations else [],           # append-safe
+        issue_called=state.issue_called + (1 if response.is_issue else 0),
+        observations_added=state.observations_added,
+        llm_calls=state.llm_calls,
+        path=state.path,
+    )
 
 
 #  Building the Agent

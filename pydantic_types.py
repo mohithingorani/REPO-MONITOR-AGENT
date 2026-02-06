@@ -2,7 +2,7 @@
 from operator import add
 from pydantic import BaseModel, Field
 from langchain.messages import AnyMessage
-from typing import Annotated, List
+from typing_extensions import Annotated, List
 
 class ImportantFilesOutput(BaseModel):
     """Get important files"""
