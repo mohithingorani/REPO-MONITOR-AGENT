@@ -3,7 +3,7 @@ from langchain.messages import SystemMessage,HumanMessage
 
 from llm.ollama import llm
 
-def is_issue_in_file(content:str,file_name:str) -> isIssue:
+def is_issue_in_file(content:str) -> isIssue:
     """Analyze the content of a file to determine if it describes an issue."""
     llm_with_structured_output = llm.with_structured_output(isIssue)
     response = llm_with_structured_output.invoke([

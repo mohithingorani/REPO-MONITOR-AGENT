@@ -27,6 +27,7 @@ def get_important_files(state: MessageState)->MessageState:
         files=important,
         messages=[ToolMessage(content=f"Identified {len(important)} important files from the repo", tool_call_id="get_important_files")],
         path="",
-        curr_index=state.curr_index
+        curr_index=state.curr_index,
+        observations=[]
     )
     

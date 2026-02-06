@@ -38,8 +38,10 @@ agent_builder.add_edge(START,"parse_repo")
 agent_builder.add_edge("parse_repo","get-all-files")
 agent_builder.add_edge("get-all-files","important-files")
 agent_builder.add_edge("important-files","get_contents")
-agent_builder.add_conditional_edges("get_contents",should_continue,["get_issue","summarizer"])
-agent_builder.add_edge("get_issue","get_contents")
+# agent_builder.add_conditional_edges("get_contents",should_continue,["get_issue","summarizer"])
+# agent_builder.add_edge("get_issue","get_contents")
+agent_builder.add_edge("get_contents","get_issue")
+agent_builder.add_conditional_edges("get_issue",should_continue,["get_contents","summarizer"])
 agent_builder.add_edge("summarizer",END)
 
 

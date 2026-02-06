@@ -14,12 +14,12 @@ def get_contents_of_file(state:MessageState) -> str:
     })
     return MessageState(
         messages=[],
-        curr_index=state.curr_index+1,
+        curr_index=state.curr_index,
+        observations=[],
         files=state.files,
         owner=state.owner,
         repo=state.repo,
         curr_observation=content,
-        observations_added=state.observations_added,
         llm_calls=state.llm_calls,
         path=state.path,
     )

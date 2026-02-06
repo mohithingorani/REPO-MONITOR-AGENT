@@ -27,7 +27,6 @@ def summarization_node(state:MessageState):
         curr_observation="",                    
         observations=[],
         issue_called=state.issue_called,
-        observations_added=state.observations_added,
         llm_calls=state.llm_calls,
         path=state.path,
     )
