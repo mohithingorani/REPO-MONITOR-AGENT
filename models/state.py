@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing_extensions import Annotated
+from pydantic import BaseModel,Field
+from typing_extensions import Annotated,List,Dict,Literal
 from operator import add
 from langchain.messages import AnyMessage
 
@@ -9,6 +9,15 @@ class ObservationState(BaseModel):
     severity:str
     issue:str
 
+
+class RepoMetaData(BaseModel):
+    tech_stack:List[str] = Field(description="Tech stacks used")
+    license:str | None
+    project_maturity:Literal["Prototype",
+        "Early / MVP",
+        "Production-ready",
+        "Mature"]
+    
 
 class MessageState(BaseModel):
     messages : Annotated[list[AnyMessage],add]
@@ -22,3 +31,5 @@ class MessageState(BaseModel):
     curr_observation:str = ""
     issue_called: int| None = 0
     final_observations:str| None = None
+    repo_metadata:RepoMetaData | None = None
+

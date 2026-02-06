@@ -1,51 +1,12 @@
 import requests
 import os
 from dotenv import load_dotenv
-load_dotenv()
-
-
-
-
 from langchain_core.tools import tool
-GITHUB_API = "https://api.github.com"
-HEADERS = {
-    "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
-    "Accept": "application/vnd.github+json"
-}
 from langchain.messages import ToolMessage
-
-
-
-
 import requests
-from typing import List
+from config.github import GITHUB_API,HEADERS
 
-GITHUB_API = "https://api.github.com"
-
-# def fetch_repo_files(
-#     owner: str,
-#     repo: str,
-#     path: str,
-#     headers: dict
-# ) -> List[str]:
-#     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
-#     response = requests.get(url, headers=headers)
-#     response.raise_for_status()
-
-#     items = response.json()
-#     files = []
-
-#     for item in items:
-#         if item["type"] == "file":
-#             files.append(item["path"])
-#         elif item["type"] == "dir":
-#             files.extend(
-#                 fetch_repo_files(owner, repo, item["path"], headers)
-#             )
-
-#     return files
-
-
+load_dotenv()
 
 
 

@@ -7,11 +7,13 @@ def get_contents_of_file(state:MessageState) -> str:
     repo = state.repo
     currIndex = state.curr_index
     file = state.files[currIndex]
+    
     content = get_file_content.invoke({
         "owner": owner,
         "repo": repo,
         "file_path": file
     })
+
     return MessageState(
         messages=[],
         curr_index=state.curr_index,

@@ -16,7 +16,12 @@ def summarization_node(state:MessageState):
         1. Top 3 issue categories by frequency
         2. Critical issues (security/bugs blocking functionality) 
         3. Overall severity distribution
-        4. One key recommendation per major category""")])
+        4. One key recommendation per major category 
+        
+        Repo Metadata:
+        {state.repo_metadata}
+        
+        """)])
     
     return MessageState(
         messages=[response],                 
