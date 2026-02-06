@@ -84,11 +84,11 @@ def get_file_content(owner: str, repo: str, file_path: str) -> str:
     return ""
 
 
-def is_issue_in_file(content:str) -> isIssue:
+def is_issue_in_file(content:str,file_name:str) -> isIssue:
     """Analyze the content of a file to determine if it describes an issue."""
     llm_with_structured_output = llm.with_structured_output(isIssue)
     response = llm_with_structured_output.invoke([
-        SystemMessage(content="You analyze the content of a file and determine if it is an issue or not.Consider even a suggestion as issue in that specific file. Issue may also include lack of comments."),
+        SystemMessage(content="You analyze the content of a file and determine if it is an issue or not.Consider even a suggestion as issue in that specific file.Give name of the file in issue_description."),
         HumanMessage(content=f"Here is the content of the file:\n{content}\nBased on this content, is there an issue described in the file? If so, provide a brief description of the issue. If not, indicate that it is not an issue.")
     ])
     return response
