@@ -2,4 +2,4 @@
 from langchain_ollama import ChatOllama
 
 
-llm = ChatOllama(model="llama3.1:8b",temperature=0)
+llm = ChatOllama(model="phi3:mini",temperature=0)

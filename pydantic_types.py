@@ -31,3 +31,5 @@ class MessageState(BaseModel):
     curr_observation:str = ""
     issue_called: int| None = 0
     observations_added:int = 0
+
+    final_observations:str| None = None

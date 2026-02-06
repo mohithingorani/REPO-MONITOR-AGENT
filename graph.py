@@ -16,11 +16,11 @@ load_dotenv()
 
 
 
-def should_continue(state:MessageState) -> Literal["tool_node", END]:
+def should_continue(state:MessageState) -> Literal["tool_node", "summarizer"]:
 
     currIndex = state.curr_index
     if(currIndex >= len(state.files)):
-        return END
+        return "summarizer"
     return "get_issue"
 
 
@@ -93,6 +93,37 @@ def get_contents_of_file(state:MessageState) -> str:
 #         obs += observation + "\n"
 #     return MessageState(messages= tool_messages, curr_index=state.curr_index, files=state.files, owner=state.owner,observations=[], repo=state.repo,curr_observation=obs,observations_added=state.observations_added+1)
 
+
+def summarization_tool(state:MessageState):
+    observations = state.observations
+
+    response = llm.invoke(
+        [SystemMessage(content="You are a code review expert. Analyze a list of issue descriptions found in repository files. Summarize them by grouping similar issues, identifying patterns, and prioritizing by severity (Critical, High, Medium, Low). Output in structured markdown with categories, counts, and actionable recommendations. Do not use tools or function calls."),
+        HumanMessage(content=f"""Summarize these issues found across the repository files:
+
+        {observations}
+
+        Provide:
+        1. Top 3 issue categories by frequency
+        2. Critical issues (security/bugs blocking functionality) 
+        3. Overall severity distribution
+        4. One key recommendation per major category""")])
+    
+    return MessageState(
+        messages=[response],                 
+        files=state.files,
+        owner=state.owner,
+        repo=state.repo,
+        curr_index=state.curr_index,
+        curr_observation="",                    
+        observations=[],
+        issue_called=state.issue_called,
+        observations_added=state.observations_added,
+        llm_calls=state.llm_calls,
+        path=state.path,
+    )
+
+
 def get_issue(state: MessageState) -> MessageState:
     obs = state.curr_observation
     file_name = state.files[state.curr_index]
@@ -127,15 +158,17 @@ agent_builder.add_node("important-files",get_important_files)
 agent_builder.add_node("get_contents",get_contents_of_file)
 # agent_builder.add_node("tool_node",tool_node)
 agent_builder.add_node("get_issue",get_issue)
+agent_builder.add_node("summarizer",summarization_tool)
 
 agent_builder.add_edge(START,"parse_repo")
 agent_builder.add_edge("parse_repo","get-all-files")
 agent_builder.add_edge("get-all-files","important-files")
 agent_builder.add_edge("important-files","get_contents")
-agent_builder.add_conditional_edges("get_contents",should_continue,["get_issue",END])
+agent_builder.add_conditional_edges("get_contents",should_continue,["get_issue","summarizer"])
 # agent_builder.add_edge("tool_node", "llm_call")
 # agent_builder.add_edge("tool_node","get_issue")
 agent_builder.add_edge("get_issue","get_contents")
+agent_builder.add_edge("summarizer",END)
 
 
 # Compile the agent
@@ -147,4 +180,4 @@ show_image(agent)
 response = agent.invoke({"messages":[HumanMessage(content="tell me about https://github.com/mohithingorani/BAJAJ-BROKING-SDK")]})
 
 print("\n\n\n\n\n\n\n\n Final Response")
-print(response.get("observations"))
+print(response.get("messages")[-1].content)
