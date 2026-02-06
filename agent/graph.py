@@ -44,6 +44,6 @@ agent_builder.add_edge("summarizer",END)
 
 # Compile the agent
 agent = agent_builder.compile()
-show_image(agent)
+# show_image(agent)
 
 
