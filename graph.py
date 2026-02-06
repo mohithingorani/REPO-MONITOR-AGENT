@@ -54,7 +54,7 @@ def llm_call(state:MessageState) -> MessageState:
     )
 )
     ])
-    return MessageState(messages=[response], curr_index=state.curr_index+1, files=state.files, owner=state.owner, repo=state.repo)
+    return MessageState(messages=[response], curr_index=state.curr_index+1, files=state.files, owner=state.owner, repo=state.repo,llm_calls=state.llm_calls+1)
 
 
 def tool_node(state: MessageState) -> MessageState:
@@ -90,6 +90,7 @@ def get_issue(state: MessageState) -> MessageState:
         llm_calls=state.llm_calls,
         path=state.path,
     )
+
 
 
 #  Building the Agent
