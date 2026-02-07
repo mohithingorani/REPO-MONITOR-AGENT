@@ -16,9 +16,8 @@ def summarization_node(state:MessageState):
         1. Top 3 issue categories by frequency
         2. Critical issues (security/bugs blocking functionality) 
         3. Overall severity distribution
-        4. One key recommendation per major category 
         
-        Repo Metadata:
+        Repo Metadata: Use this for understanding context
         {state.repo_metadata}
         
         """)])
@@ -32,7 +31,7 @@ def summarization_node(state:MessageState):
         curr_observation="",                    
         observations=[],
         issue_called=state.issue_called,
-        llm_calls=state.llm_calls,
+        llm_calls=state.llm_calls+1,
         path=state.path,
     )
 

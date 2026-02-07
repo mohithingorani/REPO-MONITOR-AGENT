@@ -17,7 +17,7 @@ def get_metadata(state:MessageState):
     ])
     return MessageState(
       repo_metadata=response,
-      llm_calls=state.llm_calls,
+      llm_calls=state.llm_calls+1,
       files=state.files,
       owner = state.owner,
       repo=state.repo,

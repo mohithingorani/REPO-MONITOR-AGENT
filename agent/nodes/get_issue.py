@@ -21,7 +21,7 @@ def get_issue(state: MessageState) -> MessageState:
         curr_observation="",                     
         observations = new_observatvations,
         issue_called=state.issue_called + (1 if response.is_issue else 0),
-        llm_calls=state.llm_calls,
+        llm_calls=state.llm_calls+1,
         path=state.path,
     )
 
