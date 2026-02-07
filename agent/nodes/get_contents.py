@@ -1,7 +1,7 @@
 from tools.github import get_file_content
 from models.state import MessageState
 
-def get_contents_of_file(state:MessageState) -> str:
+def get_contents_of_file(state:MessageState) -> MessageState:
     """Get content of the current file"""
     owner = state.owner
     repo = state.repo
@@ -14,7 +14,7 @@ def get_contents_of_file(state:MessageState) -> str:
         "file_path": file
     })
 
-    return MessageState(
+    return  MessageState(
         messages=[],
         curr_index=state.curr_index,
         observations=[],

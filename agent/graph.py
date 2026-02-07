@@ -38,12 +38,13 @@ agent_builder.add_edge("get_metadata","get_contents")
 # agent_builder.add_conditional_edges("get_contents",should_continue,["get_issue","summarizer"])
 # agent_builder.add_edge("get_issue","get_contents")
 agent_builder.add_edge("get_contents","get_issue")
-agent_builder.add_conditional_edges("get_issue",should_continue,["get_contents","summarizer"])
+# agent_builder.add_conditional_edges("get_issue",should_continue,["get_contents","summarizer"])
+agent_builder.add_node("get_issue","summarizer")
 agent_builder.add_edge("summarizer",END)
 
 
 # Compile the agent
 agent = agent_builder.compile()
-# show_image(agent)
+show_image(agent)
 
 
