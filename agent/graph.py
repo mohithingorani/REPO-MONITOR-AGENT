@@ -14,6 +14,9 @@ from dotenv import load_dotenv
 from agent.nodes.git_metadata import get_metadata
 from utils.image_show import show_image
 from langgraph.checkpoint.memory import InMemorySaver
+from agent.nodes.approval_node import approval_node
+
+
 load_dotenv()
 
 
@@ -30,14 +33,14 @@ agent_builder.add_node("get_contents",get_contents_of_file)
 agent_builder.add_node("get_issue",get_issue)
 agent_builder.add_node("summarizer",summarization_node)
 agent_builder.add_node("get_metadata",get_metadata)
+agent_builder.add_node("approval_node",approval_node)
+
 
 agent_builder.add_edge(START,"parse_repo")
 agent_builder.add_edge("parse_repo","get-all-files")
 agent_builder.add_edge("get-all-files","important_files")
-agent_builder.add_edge("important_files","get_metadata")
+agent_builder.add_edge("important_files","approval_node")
 agent_builder.add_edge("get_metadata","get_contents")
-# agent_builder.add_conditional_edges("get_contents",should_continue,["get_issue","summarizer"])
-# agent_builder.add_edge("get_issue","get_contents")
 agent_builder.add_edge("get_contents","get_issue")
 agent_builder.add_conditional_edges("get_issue",should_continue,["get_contents","summarizer"])
 agent_builder.add_edge("summarizer",END)

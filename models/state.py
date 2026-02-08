@@ -32,4 +32,5 @@ class MessageState(BaseModel):
     issue_called: int| None = 0
     final_observations:str| None = None
     repo_metadata:RepoMetaData | None = None
-
+    prompt:str | None = None
+    refresh_important_files:bool = False
