@@ -4,3 +4,5 @@ dotenv
 requests
 fastapi
 uvicorn
+pydantic
+pydantic-settings
