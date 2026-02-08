@@ -17,6 +17,7 @@ def invoke_agent(prompt:str):
 
     # Get initial state
     print("\n\nInitial State = ",history[-1])
+    return response.get("messages")[-1].content
 
 config:RunnableConfig = {"configurable":{"thread_id":"1"}}
 
