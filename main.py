@@ -20,8 +20,8 @@ def invoke_agent(prompt:str):
 
 config:RunnableConfig = {"configurable":{"thread_id":"1"}}
 
-if(__name__=="__main__"):
-    invoke_agent("Tell me about https://github.com/mohithingorani/BAJAJ-BROKING-SDK")
+# if(__name__=="__main__"):
+#     invoke_agent("Tell me about https://github.com/mohithingorani/BAJAJ-BROKING-SDK")
 
 
 
