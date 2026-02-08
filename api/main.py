@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from api.chat import router as chat_router
+from api.core.logging import setup_logging
 
+setup_logging()
 
 app = FastAPI(
     title="Agent API",

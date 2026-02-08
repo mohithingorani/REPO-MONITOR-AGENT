@@ -2,7 +2,9 @@ from agent.graph import graph
 from langchain.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 # Invoking the Agent
-def invoke_agent(prompt:str):
+def invoke_agent(prompt:str)->str:
+    if not prompt.strip():
+        raise ValueError("Prompt cannot be empty")
     response = graph.invoke({"messages":[HumanMessage(content=prompt)]},config)
     print("\n\n\n\n\n\n\n\n Final Response")
     print(response.get("messages")[-1].content)
