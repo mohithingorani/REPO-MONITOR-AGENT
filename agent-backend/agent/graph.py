@@ -48,6 +48,6 @@ agent_builder.add_edge("summarizer",END)
 checkpointer = InMemorySaver()
 
 graph = agent_builder.compile(checkpointer=checkpointer)
-show_image(graph)
+# show_image(graph)
 
 
