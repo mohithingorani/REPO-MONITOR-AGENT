@@ -1,15 +1,16 @@
 "use client";
 import axios from "axios";
 import { useState } from "react";
-export default function Home() {
+import ReactMarkdown from "react-markdown"
 
+export default function Home() {
   const [message, setMessage] = useState("");
   const [prompt, setPrompt] = useState("");
   async function sendMessage(){
-    const message = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat/`, {
+    const message = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat`, {
       prompt: prompt
     })
-    setMessage(message.data);
+    setMessage(message.data.response);
   }
 
   return (
@@ -20,7 +21,7 @@ export default function Home() {
       <div className="h-64 overflow-y-auto mb-4">
         <div className="mb-2">
           <p className="text-sm text-gray-600">{prompt}</p>
-          <p className="text-sm text-gray-600">{message}</p>
+          <ReactMarkdown>{message}</ReactMarkdown>
         </div>
       </div>
       <input
